@@ -1,37 +1,20 @@
-name: Build and Push Docker Image
+FROM python:3.9-slim
+WORKDIR /app
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
 
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+COPY app.py .
+RUN useradd -m -u 1000 appuser
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+RUN chown -R appuser:appuser /app
+USER appuser
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./lab2/app
-          file: ./lab2/app/Dockerfile
-          push: true
-          tags: artemmalikov02/my-flask-app:latest
-
-      - name: Deploy notification
-        run: |
-          echo "Docker image built and pushed successfully!"
-          echo "Image: artemmalikov02/my-flask-app:latest"
-          echo "Ready for deployment!"
+ENV FLASK_ENV=production
+EXPOSE 5000
+CMD ["python", "app.py"]
