@@ -25,8 +25,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: /lab2/app
-          file: /lab2/app/Dockerfile
+          context: ./lab2/app
+          file: ./lab2/app/Dockerfile
           push: true
           tags: artemmalikov02/my-flask-app:latest
 
